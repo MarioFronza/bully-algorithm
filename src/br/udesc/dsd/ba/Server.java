@@ -1,88 +1,32 @@
 package br.udesc.dsd.ba;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 public class Server {
 
-    private List<Process> processList;
+    private Socket client;
+    private ServerSocket serverSocket;
+    private int port;
 
-    private static Server instante;
-
-    private Process currentBoss;
-
-    public static Server getInstance() {
-        if (instante == null) {
-            instante = new Server();
-        }
-
-        return instante;
+    public Server(int port) {
+        this.client = null;
+        this.port = port;
     }
 
-    private Server() {
-        this.processList = new ArrayList<>();
-    }
-
-
-    public void start() {
-        for (int i = 0; i < 5; i++) {
-            this.processList.add(new Process());
-            this.processList.get(i).start();
-        }
-    }
-
-    public List<Process> getProcessList() {
-        return processList;
-    }
-
-    public Process getCurrentBoss() {
-        return currentBoss;
-    }
-
-    public synchronized void verifyBoss(Process process) {
-        Process boss = null;
-        System.out.println("Processo " + process.getId() + " está verificando se existe um coordenador");
-        for (Process currentProcess : processList) {
-            if (currentProcess.isBoss() && currentProcess.isRunning()) {
-                boss = currentProcess;
+    public void startServer() {
+        try {
+            this.serverSocket = new ServerSocket(port);
+            System.out.println("Server rodando na porta: " + port);
+            while (true) {
+                this.client = serverSocket.accept();
+                System.out.println("Conexao estabelecida com " +
+                        client.getInetAddress().getHostAddress());
             }
-        }
-
-        if (boss == null) {
-            System.out.println("Não existe coordenador, " + process.getId() + " vai iniciar uma eleição");
-            elect(process);
-            System.out.println(currentBoss.getId() + " é o novo coordenador");
-        } else {
-            System.out.println("O processo " + boss.getId() + " é o coordenador");
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public void elect(Process process) {
-        Process currentProcess;
-        for (int i = 0; i < 5; i++) {
-            if (process.getId() < processList.get(i).getId()) {
-                if (processList.get(i).response().equals("ok")) {
-                    currentProcess = processList.get(i);
-                    processList.get(i).setBoss(true);
-                    processList.get(i).setRunning(true);
-                    currentBoss = processList.get(i);
-                    System.out.println("Election message is sent from " + process.getId() + " to " + currentProcess.getId());
-                    if (currentProcess.isRunning())
-                        elect(currentProcess);
-                } else {
-                    currentProcess = processList.get(i);
-                    System.out.println("Election message is not sent from " + process.getId() + " to " + currentProcess.getId());
-                }
-            }
-        }
-    }
-
-    public synchronized void killBos() {
-        for (int i = 0; i < 5; i++) {
-            if (processList.get(i).isBoss()) {
-                this.processList.get(i).setBoss(false);
-            }
-        }
-        this.currentBoss = null;
-    }
 }

@@ -1,101 +1,96 @@
 package br.udesc.dsd.ba;
 
-import java.util.List;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.util.Random;
 
-public class Process extends Thread {
+public class Process {
 
+    private int id;
     private boolean isBoss;
     private boolean isRunning;
 
-    private List<Process> processList;
+    private Socket socket;
+    private ObjectOutputStream outputStream;
+    private Random random;
 
-    private Process currentBoss;
 
-    private Server server;
+    private int timeToStopProcess;
+    private int timeToRestartProcess;
+    private int timeToVerifyBoss;
 
-    private int task1;
-    private int task2;
-    private int task3;
-    private int task4;
 
-    public Process() {
+    public Process(int id) {
+        this.id = id;
         this.isBoss = false;
         this.isRunning = true;
-        this.server = Server.getInstance();
-        this.processList = Server.getInstance().getProcessList();
+        this.random = new Random();
+        this.timeToStopProcess = 0;
+        this.timeToRestartProcess = 0;
+        this.timeToVerifyBoss = 0;
     }
 
-
-    public boolean isBoss() {
-        return isBoss;
-    }
-
-    public boolean isRunning() {
-        return isRunning;
-    }
-
-    public String response() {
-        if (isRunning) {
-            return "ok";
-        }
-        return "";
-    }
-
-    public void setBoss(boolean boss) {
-        isBoss = boss;
-    }
-
-    public void setRunning(boolean running) {
-        isRunning = running;
-    }
-
-    public void stopProcess() {
-        this.isRunning = false;
-        System.out.println("Processo" + this.getId() + "parou de funcionar");
-    }
-
-    public void restartProcess() {
-        this.isRunning = true;
-        System.out.println("Processo" + this.getId() + "voltou funcionar");
-    }
-
-    @Override
-    public void run() {
-        super.run();
+    public void start() {
+        System.out.println("Cliente " + id + " rodando...");
         while (true) {
-            if (task1 == 5) {
-                this.server.verifyBoss(this);
-                this.task1 = 0;
-            }
-
-            if (task2 == 10) {
+            if (timeToStopProcess == 5) {
                 stopProcess();
-                task2 = 0;
+                this.timeToStopProcess = 0;
             }
-
-            if (task3 == 20) {
+            if (timeToRestartProcess == 8) {
                 restartProcess();
-                task3 = 0;
+                this.timeToRestartProcess = 0;
             }
 
-            if (task4 == 7) {
-                this.server.killBos();
-                task4 = 0;
+            if (timeToVerifyBoss == 17) {
+                verifyBoss();
+                this.timeToVerifyBoss = 0;
             }
 
-            if (isRunning) {
-
-            }
-
-            this.task1++;
-            this.task2++;
-            this.task3++;
-            this.task4++;
             try {
-                Thread.sleep(1000);
+                Thread.sleep(random.nextInt(1000) + 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            this.timeToStopProcess++;
+            this.timeToRestartProcess++;
+            this.timeToVerifyBoss++;
+        }
+
+    }
+
+    public void stopProcess() {
+        if (isRunning) {
+            this.isRunning = false;
+            System.out.println("Processo " + this.id + " parou de funcionar");
+        }
+    }
+
+    public void restartProcess() {
+        if (!isRunning) {
+            this.isRunning = true;
+            System.out.println("Processo " + this.id + " voltou funcionar");
+        }
+    }
+
+    public void verifyBoss() {
+        if (isRunning) {
+            System.out.println("Processo " + this.id + " está verificando se existe um coordenador");
+        }
+    }
+
+    public void sendMessage(Message message) {
+        try {
+            socket = new Socket("localhost", 56001);
+
+            outputStream = new ObjectOutputStream(socket.getOutputStream());
+            outputStream.writeObject(message);
+            outputStream.flush();
+            outputStream.close();
+            socket.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 
