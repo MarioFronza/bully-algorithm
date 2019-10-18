@@ -3,7 +3,7 @@ package br.udesc.dsd.ba;
 
 public class Main {
 
-    private static int ports[] = {56000, 56001, 56002, 56003, 56004};
+
     private static int id;
 
     public static void main(String[] args) {
@@ -12,8 +12,9 @@ public class Main {
         Process process = new Process(id);
         process.start();
 
-        Server server = new Server(ports[id - 1]);
-        server.startServer();
+        Server server = new Server(Constants.ports[id - 1]);
+        server.addObserver(process);
+        server.start();
 
     }
 }
