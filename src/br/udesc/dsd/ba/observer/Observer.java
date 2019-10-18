@@ -6,9 +6,7 @@ public interface Observer {
 
     void newBossMessage(int sourceId);
 
-    void verifyNewBoss(int sourceId);
+    void checkIfImTheBoss(int sourceId);
 
     void responseMessage();
-
-    void idBossMessage(int sourceId);
 }

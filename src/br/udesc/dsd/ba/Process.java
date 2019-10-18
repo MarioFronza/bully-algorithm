@@ -12,9 +12,7 @@ public class Process extends Thread implements Observer {
     private int id;
     private int currentBoss;
     private int numberOfResponse;
-    private boolean isBoss;
     private boolean isElection;
-
 
     private Socket socket;
     private ObjectOutputStream outputStream;
@@ -24,43 +22,39 @@ public class Process extends Thread implements Observer {
     public Process(int id) {
         this.id = id;
         this.numberOfResponse = 0;
-        this.isElection = false;
-        this.isBoss = false;
         this.currentBoss = -1;
+        this.isElection = false;
         this.random = new Random();
-
     }
 
     @Override
     public void run() {
         super.run();
-        System.out.println("Cliente " + id + " rodando...");
+        System.out.println("Processo " + id + " rodando...");
+        sendMessageToAllProcess(Constants.WHO_IS_THE_BOSS);
         while (true) {
-            if (!isElection) {
-                verifyBoss();
-            }
-            try {
-                Thread.sleep(2000 + random.nextInt(3000));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            waitRandomTime();
+            verifyBoss();
         }
     }
 
     public void verifyBoss() {
-        System.out.println("Processo " + id + " está verificando se existe um coordenador");
-        if (isBoss) {
+        if (currentBoss == id) {
             System.out.println("Eu sou o coordenador");
         } else {
-            sendMessageToAllProcess(Constants.VERIFY_BOSS);
+            currentBoss = -1;
+            sendMessageToAllProcess(Constants.WHO_IS_THE_BOSS);
+            waitRandomTime();
             if (currentBoss == -1) {
-                System.out.println("Não existe coordenador, o processo " + id + " vai iniciar uma eleição");
-                election();
+                if (!isElection) {
+                    System.out.println("Não existe coordenador, o processo " + id + " vai iniciar uma eleição");
+                    election();
+                    verifyElectionResult();
+                }
             } else {
                 System.out.println("O processo " + currentBoss + " é o coordenador");
             }
         }
-
     }
 
     public void sendMessageToAllProcess(String message) {
@@ -71,10 +65,25 @@ public class Process extends Thread implements Observer {
         }
     }
 
+    public void election() {
+        for (int i = 0; i < Constants.ports.length; i++) {
+            if (i + 1 > id) {
+                sendMessage(new Message(id, i + 1, Constants.ELECTION_MESSAGE));
+            }
+        }
+    }
+
+    public void waitRandomTime() {
+        try {
+            Thread.sleep(100 + random.nextInt(5000));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void sendMessage(Message message) {
         try {
             socket = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
-
             outputStream = new ObjectOutputStream(socket.getOutputStream());
             outputStream.writeObject(message);
             socket.close();
@@ -83,30 +92,28 @@ public class Process extends Thread implements Observer {
         }
     }
 
-    public void election() {
-        for (int i = 0; i < Constants.ports.length; i++) {
-            if (i + 1 > id) {
-                sendMessage(new Message(id, i + 1, Constants.ELECTION_MESSAGE));
-            }
-        }
+    public void verifyElectionResult() {
+        waitRandomTime();
         if (numberOfResponse == 0) {
             System.out.println("Eu sou o novo coordenador");
-            isBoss = true;
             currentBoss = id;
-            isElection = false;
-            numberOfResponse = 0;
-            sendMessageToAllProcess(Constants.NEW_BOSS_MESSAGE);
+            sendMessageToAllProcess(Constants.BOSS_MESSAGE);
         } else {
+            numberOfResponse = 0;
             System.out.println("Não serei o coordenador :(");
         }
+        isElection = false;
     }
-
 
     @Override
     public void electionMessage(int sourceId) {
-        isElection = true;
         sendMessage(new Message(id, sourceId, Constants.RESPONSE_MESSAGE));
-        election();
+        if (!isElection) {
+            isElection = true;
+            System.out.println("Respondi e agora eu irei iniciar a eleição");
+            election();
+            verifyElectionResult();
+        }
     }
 
     @Override
@@ -117,20 +124,14 @@ public class Process extends Thread implements Observer {
     @Override
     public void newBossMessage(int sourceId) {
         isElection = false;
-        isBoss = false;
         numberOfResponse = 0;
         currentBoss = sourceId;
     }
 
     @Override
-    public void idBossMessage(int sourceId) {
-        currentBoss = sourceId;
-    }
-
-    @Override
-    public void verifyNewBoss(int sourceId) {
-        if (isBoss) {
-            sendMessage(new Message(id, sourceId, Constants.ID_BOSS_MESSAGE));
+    public void checkIfImTheBoss(int sourceId) {
+        if (currentBoss == id) {
+            sendMessage(new Message(id, sourceId, Constants.BOSS_MESSAGE));
         }
     }
 }

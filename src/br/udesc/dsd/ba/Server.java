@@ -28,34 +28,34 @@ public class Server extends Thread {
         super.run();
         try {
             this.serverSocket = new ServerSocket(port);
-            System.out.println("Server rodando na porta: " + port);
             while (true) {
                 this.client = serverSocket.accept();
 
                 ObjectInputStream objectInputStream = new ObjectInputStream(client.getInputStream());
                 Message message = (Message) objectInputStream.readObject();
 
-                if (message.getMessage().equals(Constants.ELECTION_MESSAGE))
-                    notifyElectionMessage(message.getSource());
+                validateInputMessage(message);
 
-                if (message.getMessage().equals(Constants.RESPONSE_MESSAGE))
-                    notifyResponseMessage();
 
-                if (message.getMessage().equals(Constants.NEW_BOSS_MESSAGE))
-                    notifyNewBossMessage(message.getSource());
-
-                if (message.getMessage().equals(Constants.VERIFY_BOSS))
-                    notifyVerifyBossMessage(message.getSource());
-
-                if (message.getMessage().equals(Constants.ID_BOSS_MESSAGE))
-                    notifyIdBossMessage(message.getSource());
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
 
+    public synchronized void validateInputMessage(Message message) {
+        if (message.getMessage().equals(Constants.ELECTION_MESSAGE))
+            notifyElectionMessage(message.getSource());
 
+        if (message.getMessage().equals(Constants.RESPONSE_MESSAGE))
+            notifyResponseMessage();
+
+        if (message.getMessage().equals(Constants.BOSS_MESSAGE))
+            notifyNewBossMessage(message.getSource());
+
+        if (message.getMessage().equals(Constants.WHO_IS_THE_BOSS))
+            notifyWhoIsTheBossMessage(message.getSource());
+    }
 
 
     public void addObserver(Observer observer) {
@@ -80,15 +80,9 @@ public class Server extends Thread {
         }
     }
 
-    private void notifyVerifyBossMessage(int sourceId) {
+    private void notifyWhoIsTheBossMessage(int sourceId) {
         for (Observer observer : observerList) {
-            observer.verifyNewBoss(sourceId);
-        }
-    }
-
-    private void notifyIdBossMessage(int sourceId) {
-        for (Observer observer : observerList) {
-            observer.idBossMessage(sourceId);
+            observer.checkIfImTheBoss(sourceId);
         }
     }
 
