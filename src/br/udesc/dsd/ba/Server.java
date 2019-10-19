@@ -33,6 +33,7 @@ public class Server extends Thread {
 
                 ObjectInputStream objectInputStream = new ObjectInputStream(client.getInputStream());
                 Message message = (Message) objectInputStream.readObject();
+                client.setSoTimeout(5000);
 
                 validateInputMessage(message);
 

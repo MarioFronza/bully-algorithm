@@ -88,7 +88,7 @@ public class Process extends Thread implements Observer {
             outputStream.writeObject(message);
             socket.close();
         } catch (IOException ex) {
-//            System.out.println("Erro ao enviar mensagem");
+            System.out.println("Erro ao enviar mensagem");
         }
     }
 

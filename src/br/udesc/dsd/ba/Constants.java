@@ -7,6 +7,6 @@ public class Constants {
     public static String ELECTION_MESSAGE = "ELECTION";
     public static String RESPONSE_MESSAGE = "OK";
     public static String WHO_IS_THE_BOSS = "WHO IS THE BOSS";
-    public static String BOSS_MESSAGE = "I'M THE FUCKING BOSS";
+    public static String BOSS_MESSAGE = "IM THE FUCKING BOSS";
 
 }
