@@ -97,11 +97,6 @@ public class Server extends Thread {
         if (message.getMessage().equals(Constants.WHO_IS_THE_BOSS))
             notifyWhoIsTheBossMessage(message.getSource());
 
-        if (message.getMessage().equals(Constants.IM_THE_BOSS_MESSAGE)) {
-            currentBoss = message.getSource();
-            countOfResponseMessages++;
-        }
-
         if (message.getMessage().equals(Constants.IM_NOT_THE_BOSS_MESSAGE)) {
             countOfResponseMessages++;
         }
@@ -116,6 +111,7 @@ public class Server extends Thread {
 
         if (message.getMessage().equals(Constants.BOSS_MESSAGE)) {
             currentBoss = message.getSource();
+            countOfResponseMessages++;
             notifyNewBoss(message.getSource());
         }
     }
@@ -134,7 +130,8 @@ public class Server extends Thread {
 
 
     public void startElection(int id) {
-        if (!firstElection) {
+        if (!firstElection && currentBoss == -1) {
+            System.out.println("Iniciando nova eleição");
             resetCountElectionMessages();
             for (int i = 0; i < Constants.ports.length; i++) {
                 if (i + 1 > id) {
@@ -142,12 +139,16 @@ public class Server extends Thread {
                     sendMessage(new Message(id, i + 1, Constants.ELECTION_MESSAGE), true);
                 }
             }
-            verifyElectionResult();
+            new Thread(() -> verifyElectionResult()).start();
             firstElection = true;
         }
     }
 
     public void verifyWhoIsTheBoss(String message, int sourceId) {
+        new Thread(() -> verifyAndSendMessageToBoss(message, sourceId)).start();
+    }
+
+    public void verifyAndSendMessageToBoss(String message, int sourceId) {
         if (!verifyElection) {
             currentBoss = -1;
             resetCountMessages();
@@ -170,7 +171,6 @@ public class Server extends Thread {
                 }
             }
         }
-
     }
 
     private void verifyElectionResult() {
