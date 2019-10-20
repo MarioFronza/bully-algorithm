@@ -12,7 +12,8 @@ public class Main {
         Process process = new Process(id);
         process.start();
 
-        Server server = new Server(Constants.ports[id - 1]);
+        Server server = Server.getInstance();
+        server.setPort(Constants.ports[id - 1]);
         server.addObserver(process);
         server.start();
 
