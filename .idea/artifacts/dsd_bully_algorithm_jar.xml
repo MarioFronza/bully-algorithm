@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="dsd-bully-algorithm:jar">
-    <output-path>$USER_HOME$</output-path>
-    <root id="archive" name="dsd-bully-algorithm.jar">
-      <element id="module-output" name="dsd-bully-algorithm" />
-    </root>
-  </artifact>
-</component>
