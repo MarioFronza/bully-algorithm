@@ -14,10 +14,6 @@
 2. Move to frontend directory: `cd dsd-bully-algorithm`.<br />
 3. Run `java -jar dsd-bully-algorithm.jar (number 1 - 5)` to start a process.<br />
 
-## Ips list
-
-1.
-
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.
