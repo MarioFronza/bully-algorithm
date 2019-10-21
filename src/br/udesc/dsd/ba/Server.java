@@ -17,9 +17,9 @@ public class Server extends Thread {
 
     private int port;
     private int currentBoss;
+    private int countOfResponseElectionMessages;
 
     private boolean firstElection;
-    public boolean verifyElection;
 
     private Socket client;
     private Socket targetClient;
@@ -29,12 +29,6 @@ public class Server extends Thread {
 
     private List<Observer> observerList;
 
-    private int countOfResponseMessages;
-    private int countOfUnsentMessages;
-
-    private int countOfUnsetElectionMessages;
-    private int countOfResponseElectionMessages;
-    private int countOfElectionMessages;
 
     public static Server getInstance() {
         if (instance == null) {
@@ -45,14 +39,9 @@ public class Server extends Thread {
 
     private Server() {
         this.client = null;
-        this.countOfResponseMessages = 0;
-        this.countOfUnsentMessages = 0;
-        this.countOfElectionMessages = 0;
-        this.countOfResponseElectionMessages = 0;
-        this.countOfUnsetElectionMessages = 0;
         this.currentBoss = -1;
         this.firstElection = false;
-        this.verifyElection = false;
+        this.countOfResponseElectionMessages = 0;
         this.random = new Random();
 
         this.observerList = new ArrayList<>();
@@ -97,9 +86,6 @@ public class Server extends Thread {
         if (message.getMessage().equals(Constants.WHO_IS_THE_BOSS))
             notifyWhoIsTheBossMessage(message.getSource());
 
-        if (message.getMessage().equals(Constants.IM_NOT_THE_BOSS_MESSAGE)) {
-            countOfResponseMessages++;
-        }
 
         if (message.getMessage().equals(Constants.OK)) {
             countOfResponseElectionMessages++;
@@ -111,86 +97,56 @@ public class Server extends Thread {
 
         if (message.getMessage().equals(Constants.BOSS_MESSAGE)) {
             currentBoss = message.getSource();
-            countOfResponseMessages++;
             notifyNewBoss(message.getSource());
         }
-    }
-
-
-    public void resetCountMessages() {
-        countOfUnsentMessages = 0;
-        countOfResponseMessages = 0;
-    }
-
-    public void resetCountElectionMessages() {
-        countOfElectionMessages = 0;
-        countOfUnsetElectionMessages = 0;
-        countOfResponseElectionMessages = 0;
     }
 
 
     public void startElection(int id) {
         if (!firstElection && currentBoss == -1) {
             System.out.println("Iniciando eleição");
-            resetCountElectionMessages();
             for (int i = 0; i < Constants.ports.length; i++) {
                 if (i + 1 > id) {
-                    countOfElectionMessages++;
-                    sendMessage(new Message(id, i + 1, Constants.ELECTION_MESSAGE), true);
+                    sendMessage(new Message(id, i + 1, Constants.ELECTION_MESSAGE));
                 }
             }
-            new Thread(() -> verifyElectionResult()).start();
+            verifyElectionResult();
             firstElection = true;
         }
     }
 
     public void verifyWhoIsTheBoss(String message, int sourceId) {
-        new Thread(() -> verifyAndNotifyNewBoss(message, sourceId)).start();
-    }
+        currentBoss = -1;
+        sendMessageToAllProcess(message, sourceId);
+        boolean findBoss = false;
 
-    public void verifyAndNotifyNewBoss(String message, int sourceId) {
-        if (!verifyElection) {
-            currentBoss = -1;
-            resetCountMessages();
+        int countLimit = 0;
 
-            sendMessageToAllProcess(message, sourceId);
-            boolean findBoss = false;
-
-            while (!findBoss) {
-                int responseCount = countOfResponseMessages;
-                int errorCount = countOfUnsentMessages;
-                waitRandomTime();
-
-                if (responseCount + errorCount == Constants.ports.length - 1) {
-                    if (currentBoss == -1) {
-                        notifyBossNotFound(); // nenhum coordenador encontrado
-                    } else {
-                        notifyNewBoss(currentBoss);
-                    }
-                    findBoss = true;
-                }
+        while (!findBoss && countLimit < 3) {
+            waitRandomTime();
+            if (currentBoss == -1) {
+                notifyBossNotFound(); // nenhum coordenador encontrado
+                findBoss = true;
+            } else {
+                notifyNewBoss(currentBoss);
+                findBoss = true;
             }
+            countLimit++;
         }
     }
 
     private void verifyElectionResult() {
-        verifyElection = true;
         boolean hasResult = false;
-        while (!hasResult) {
-            int responseElectionCount = countOfResponseElectionMessages;
-            int unsetElectionCount = countOfUnsetElectionMessages;
-            int processCount = countOfElectionMessages;
+        int countLimit = 0;
+        while (!hasResult && countLimit < 3) {
             waitRandomTime();
-            if (responseElectionCount + unsetElectionCount == processCount) {
-                if (responseElectionCount == 0) {
-                    notifyImTheNewBoss();
-                }
+            if (countOfResponseElectionMessages == 0) {
+                notifyImTheNewBoss();
                 hasResult = true;
             }
-
-
+            countLimit++;
         }
-        verifyElection = false;
+        countOfResponseElectionMessages = 0;
     }
 
     public void waitRandomTime() {
@@ -204,12 +160,12 @@ public class Server extends Thread {
     public void sendMessageToAllProcess(String message, int sourceId) {
         for (int i = 0; i < Constants.ports.length; i++) {
             if (i + 1 != sourceId) {
-                sendMessage(new Message(sourceId, i + 1, message), false);
+                sendMessage(new Message(sourceId, i + 1, message));
             }
         }
     }
 
-    public void sendMessage(Message message, boolean isElection) {
+    public void sendMessage(Message message) {
         try {
             targetClient = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
 //            targetClient = new Socket(Constants.ips[message.getTarget() - 1], Constants.ports[message.getTarget() - 1]);
@@ -217,11 +173,6 @@ public class Server extends Thread {
             outputStream.writeObject(message);
             targetClient.close();
         } catch (IOException ex) {
-            if (isElection) {
-                countOfUnsetElectionMessages++;
-            } else {
-                countOfUnsentMessages++;
-            }
         }
     }
 

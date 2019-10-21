@@ -60,7 +60,7 @@ public class Process extends Thread implements Observer {
     public void electionMessage(int sourceId) {
         System.out.println("Enviando " + Constants.OK + " para o processo: " + sourceId);
 
-        server.sendMessage(new Message(id, sourceId, Constants.OK), false);
+        server.sendMessage(new Message(id, sourceId, Constants.OK));
         server.startElection(id);
     }
 
@@ -77,9 +77,7 @@ public class Process extends Thread implements Observer {
     @Override
     public void checkIfImTheBoss(int sourceId) {
         if (server.getCurrentBoss() == id) {
-            server.sendMessage(new Message(id, sourceId, Constants.BOSS_MESSAGE), true);
-        } else {
-            server.sendMessage(new Message(id, sourceId, Constants.IM_NOT_THE_BOSS_MESSAGE), true);
+            server.sendMessage(new Message(id, sourceId, Constants.BOSS_MESSAGE));
         }
     }
 }
