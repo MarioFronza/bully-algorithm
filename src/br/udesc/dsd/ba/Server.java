@@ -167,8 +167,8 @@ public class Server extends Thread {
 
     public void sendMessage(Message message) {
         try {
-            targetClient = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
-//            targetClient = new Socket(Constants.ips[message.getTarget() - 1], Constants.ports[message.getTarget() - 1]);
+//            targetClient = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
+            targetClient = new Socket(Constants.ips[message.getTarget() - 1], Constants.ports[message.getTarget() - 1]);
             outputStream = new ObjectOutputStream(targetClient.getOutputStream());
             outputStream.writeObject(message);
             targetClient.close();
