@@ -131,7 +131,6 @@ public class Server extends Thread {
 
     public void startElection(int id) {
         if (!firstElection && currentBoss == -1) {
-            System.out.println("Iniciando nova eleição");
             resetCountElectionMessages();
             for (int i = 0; i < Constants.ports.length; i++) {
                 if (i + 1 > id) {
@@ -145,10 +144,10 @@ public class Server extends Thread {
     }
 
     public void verifyWhoIsTheBoss(String message, int sourceId) {
-        new Thread(() -> verifyAndSendMessageToBoss(message, sourceId)).start();
+        new Thread(() -> verifyAndNotifyNewBoss(message, sourceId)).start();
     }
 
-    public void verifyAndSendMessageToBoss(String message, int sourceId) {
+    public void verifyAndNotifyNewBoss(String message, int sourceId) {
         if (!verifyElection) {
             currentBoss = -1;
             resetCountMessages();

@@ -46,6 +46,7 @@ public class Process extends Thread implements Observer {
 
     @Override
     public void bossNotFound() {
+        System.out.println("Iniciando eleição...");
         server.startElection(id);  //Agora o processo deve iniciar uma eleição
     }
 
@@ -58,7 +59,7 @@ public class Process extends Thread implements Observer {
 
     @Override
     public void electionMessage(int sourceId) {
-        System.out.println("Enviando OK para o processo: " + sourceId);
+        System.out.println("Enviando " + Constants.OK + " para o processo: " + sourceId);
 
         server.sendMessage(new Message(id, sourceId, Constants.OK), false);
         server.startElection(id);
@@ -66,7 +67,11 @@ public class Process extends Thread implements Observer {
 
     @Override
     public void newBoss(int bossId) {
-        System.out.println("O processo " + bossId + " é o coordenador");
+        if (bossId == id) {
+            System.out.println("Eu sou o coordenador");
+        } else {
+            System.out.println("O processo " + bossId + " é o coordenador");
+        }
         server.setFirstElection(false);
     }
 
