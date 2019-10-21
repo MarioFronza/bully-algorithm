@@ -38,7 +38,7 @@ public class Process extends Thread implements Observer {
 
     public void waitRandomTime() {
         try {
-            Thread.sleep(3000 + random.nextInt(5000));
+            Thread.sleep(1000 + random.nextInt(3000));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -46,13 +46,11 @@ public class Process extends Thread implements Observer {
 
     @Override
     public void bossNotFound() {
-        System.out.println("Iniciando eleição...");
         server.startElection(id);  //Agora o processo deve iniciar uma eleição
     }
 
     @Override
     public void imTheBoss() {
-        System.out.println("Eu sou o novo coordenador");
         server.setCurrentBoss(id);
         server.sendMessageToAllProcess(Constants.BOSS_MESSAGE, id);
     }
@@ -61,7 +59,7 @@ public class Process extends Thread implements Observer {
     public void electionMessage(int sourceId) {
         System.out.println("Enviando " + Constants.OK + " para o processo: " + sourceId);
 
-        server.sendMessage(new Message(id, sourceId, Constants.OK), false);
+        server.sendMessage(new Message(id, sourceId, Constants.OK));
         server.startElection(id);
     }
 
@@ -69,8 +67,11 @@ public class Process extends Thread implements Observer {
     public void newBoss(int bossId) {
         if (bossId == id) {
             System.out.println("Eu sou o coordenador");
-        } else {
+        } else if (bossId > id) {
             System.out.println("O processo " + bossId + " é o coordenador");
+        } else {
+            server.setFirstElection(false);
+            server.startElection(id);
         }
         server.setFirstElection(false);
     }
@@ -78,9 +79,7 @@ public class Process extends Thread implements Observer {
     @Override
     public void checkIfImTheBoss(int sourceId) {
         if (server.getCurrentBoss() == id) {
-            server.sendMessage(new Message(id, sourceId, Constants.BOSS_MESSAGE), true);
-        } else {
-            server.sendMessage(new Message(id, sourceId, Constants.IM_NOT_THE_BOSS_MESSAGE), true);
+            server.sendMessage(new Message(id, sourceId, Constants.BOSS_MESSAGE));
         }
     }
 }
