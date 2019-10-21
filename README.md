@@ -3,7 +3,7 @@
   <br>
 </h1>
 
-<p align="center">Aplication developed on the omnistack week</p>
+<p align="center">Objective: Choose a process from the processor group to act as coordinator.</p>
 
 <hr />
 
