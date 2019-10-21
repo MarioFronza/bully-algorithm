@@ -3,7 +3,7 @@
   <br>
 </h1>
 
-<p align="center">Aplication developed on the omnistack week</p>
+<p align="center">Objective: Choose a process from the processor group to act as coordinator.</p>
 
 <hr />
 
@@ -13,10 +13,6 @@
 
 2. Move to frontend directory: `cd dsd-bully-algorithm`.<br />
 3. Run `java -jar dsd-bully-algorithm.jar (number 1 - 5)` to start a process.<br />
-
-## Ips list
-
-1.
 
 ## Contributing
 
