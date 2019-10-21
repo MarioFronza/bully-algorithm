@@ -9,7 +9,7 @@
 
 ## Getting started
 
-1. Clone this repo using `https://github.com/MarioFronza/dsd-bully-algorithm.git`
+1. Clone this repo using `https://github.com/MarioFronza/bully-algorithm.git`
 
 2. Move to frontend directory: `cd dsd-bully-algorithm`.<br />
 3. Run `java -jar dsd-bully-algorithm.jar (number 1 - 5)` to start a process.<br />
