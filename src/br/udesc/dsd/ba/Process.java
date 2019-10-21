@@ -38,7 +38,7 @@ public class Process extends Thread implements Observer {
 
     public void waitRandomTime() {
         try {
-            Thread.sleep(3000 + random.nextInt(5000));
+            Thread.sleep(1000 + random.nextInt(3000));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -46,7 +46,6 @@ public class Process extends Thread implements Observer {
 
     @Override
     public void bossNotFound() {
-        System.out.println("Iniciando eleição...");
         server.startElection(id);  //Agora o processo deve iniciar uma eleição
     }
 

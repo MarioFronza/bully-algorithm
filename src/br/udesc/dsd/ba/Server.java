@@ -131,6 +131,7 @@ public class Server extends Thread {
 
     public void startElection(int id) {
         if (!firstElection && currentBoss == -1) {
+            System.out.println("Iniciando eleição");
             resetCountElectionMessages();
             for (int i = 0; i < Constants.ports.length; i++) {
                 if (i + 1 > id) {
@@ -210,8 +211,8 @@ public class Server extends Thread {
 
     public void sendMessage(Message message, boolean isElection) {
         try {
-//            targetClient = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
-            targetClient = new Socket(Constants.ips[message.getTarget() - 1], Constants.ports[message.getTarget() - 1]);
+            targetClient = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
+//            targetClient = new Socket(Constants.ips[message.getTarget() - 1], Constants.ports[message.getTarget() - 1]);
             outputStream = new ObjectOutputStream(targetClient.getOutputStream());
             outputStream.writeObject(message);
             targetClient.close();
