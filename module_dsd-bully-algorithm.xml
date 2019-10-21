@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_dsd-bully-algorithm" default="compile.module.dsd-bully-algorithm">
+  <dirname property="module.dsd-bully-algorithm.basedir" file="${ant.file.module_dsd-bully-algorithm}"/>
+  
+  <property name="module.jdk.home.dsd-bully-algorithm" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.dsd-bully-algorithm" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.dsd-bully-algorithm" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.dsd-bully-algorithm" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="dsd-bully-algorithm.output.dir" value="${module.dsd-bully-algorithm.basedir}/out/production/dsd-bully-algorithm"/>
+  <property name="dsd-bully-algorithm.testoutput.dir" value="${module.dsd-bully-algorithm.basedir}/out/test/dsd-bully-algorithm"/>
+  
+  <path id="dsd-bully-algorithm.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="dsd-bully-algorithm.module.production.classpath">
+    <path refid="${module.jdk.classpath.dsd-bully-algorithm}"/>
+  </path>
+  
+  <path id="dsd-bully-algorithm.runtime.production.module.classpath">
+    <pathelement location="${dsd-bully-algorithm.output.dir}"/>
+  </path>
+  
+  <path id="dsd-bully-algorithm.module.classpath">
+    <path refid="${module.jdk.classpath.dsd-bully-algorithm}"/>
+    <pathelement location="${dsd-bully-algorithm.output.dir}"/>
+  </path>
+  
+  <path id="dsd-bully-algorithm.runtime.module.classpath">
+    <pathelement location="${dsd-bully-algorithm.testoutput.dir}"/>
+    <pathelement location="${dsd-bully-algorithm.output.dir}"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.dsd-bully-algorithm">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.dsd-bully-algorithm">
+    <patternset refid="excluded.from.module.dsd-bully-algorithm"/>
+  </patternset>
+  
+  <path id="dsd-bully-algorithm.module.sourcepath">
+    <dirset dir="${module.dsd-bully-algorithm.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.dsd-bully-algorithm" depends="compile.module.dsd-bully-algorithm.production,compile.module.dsd-bully-algorithm.tests" description="Compile module dsd-bully-algorithm"/>
+  
+  <target name="compile.module.dsd-bully-algorithm.production" depends="register.custom.compilers" description="Compile module dsd-bully-algorithm; production classes">
+    <mkdir dir="${dsd-bully-algorithm.output.dir}"/>
+    <javac2 destdir="${dsd-bully-algorithm.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.dsd-bully-algorithm}/javac">
+      <compilerarg line="${compiler.args.dsd-bully-algorithm}"/>
+      <bootclasspath refid="dsd-bully-algorithm.module.bootclasspath"/>
+      <classpath refid="dsd-bully-algorithm.module.production.classpath"/>
+      <src refid="dsd-bully-algorithm.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.dsd-bully-algorithm"/>
+    </javac2>
+    
+    <copy todir="${dsd-bully-algorithm.output.dir}">
+      <fileset dir="${module.dsd-bully-algorithm.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.dsd-bully-algorithm.tests" depends="register.custom.compilers,compile.module.dsd-bully-algorithm.production" description="compile module dsd-bully-algorithm; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.dsd-bully-algorithm" description="cleanup module">
+    <delete dir="${dsd-bully-algorithm.output.dir}"/>
+    <delete dir="${dsd-bully-algorithm.testoutput.dir}"/>
+  </target>
+</project>
