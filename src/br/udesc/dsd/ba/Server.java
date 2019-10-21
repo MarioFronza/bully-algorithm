@@ -117,7 +117,7 @@ public class Server extends Thread {
 
     public void verifyWhoIsTheBoss(String message, int sourceId) {
         currentBoss = -1;
-        sendMessageToAllProcess(message, sourceId);
+        sendMessageToAllLargerProcess(message, sourceId);
         boolean findBoss = false;
 
         int countLimit = 0;
@@ -134,6 +134,7 @@ public class Server extends Thread {
             countLimit++;
         }
     }
+
 
     private void verifyElectionResult() {
         boolean hasResult = false;
@@ -160,6 +161,14 @@ public class Server extends Thread {
     public void sendMessageToAllProcess(String message, int sourceId) {
         for (int i = 0; i < Constants.ports.length; i++) {
             if (i + 1 != sourceId) {
+                sendMessage(new Message(sourceId, i + 1, message));
+            }
+        }
+    }
+
+    private void sendMessageToAllLargerProcess(String message, int sourceId) {
+        for (int i = 0; i < Constants.ports.length; i++) {
+            if (i + 1 > sourceId) {
                 sendMessage(new Message(sourceId, i + 1, message));
             }
         }
