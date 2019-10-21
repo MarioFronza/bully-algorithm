@@ -74,7 +74,7 @@ public class Server extends Thread {
                 ObjectInputStream objectInputStream = new ObjectInputStream(client.getInputStream());
                 Message message = (Message) objectInputStream.readObject();
 
-                new Thread(() -> validateMessage(message)).start();
+                validateMessage(message);
 
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -104,7 +104,7 @@ public class Server extends Thread {
 
     public void startElection(int id) {
         if (!firstElection && currentBoss == -1) {
-            System.out.println("Iniciando eleição");
+            System.out.println("Iniciando eleição...");
             for (int i = 0; i < Constants.ports.length; i++) {
                 if (i + 1 > id) {
                     sendMessage(new Message(id, i + 1, Constants.ELECTION_MESSAGE));
@@ -141,7 +141,7 @@ public class Server extends Thread {
         int countLimit = 0;
         while (!hasResult && countLimit < 3) {
             waitRandomTime();
-            if (countOfResponseElectionMessages == 0) {
+            if (countOfResponseElectionMessages == 0 && currentBoss == -1) {
                 notifyImTheNewBoss();
                 hasResult = true;
             }
@@ -152,7 +152,7 @@ public class Server extends Thread {
 
     public void waitRandomTime() {
         try {
-            Thread.sleep(1000 + random.nextInt(3000));
+            Thread.sleep(1000 + random.nextInt(1000));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -176,8 +176,8 @@ public class Server extends Thread {
 
     public void sendMessage(Message message) {
         try {
-//            targetClient = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
-            targetClient = new Socket(Constants.ips[message.getTarget() - 1], Constants.ports[message.getTarget() - 1]);
+            targetClient = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
+//            targetClient = new Socket(Constants.ips[message.getTarget() - 1], Constants.ports[message.getTarget() - 1]);
             outputStream = new ObjectOutputStream(targetClient.getOutputStream());
             outputStream.writeObject(message);
             targetClient.close();

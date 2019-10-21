@@ -51,7 +51,6 @@ public class Process extends Thread implements Observer {
 
     @Override
     public void imTheBoss() {
-        System.out.println("Eu sou o novo coordenador");
         server.setCurrentBoss(id);
         server.sendMessageToAllProcess(Constants.BOSS_MESSAGE, id);
     }
@@ -68,8 +67,11 @@ public class Process extends Thread implements Observer {
     public void newBoss(int bossId) {
         if (bossId == id) {
             System.out.println("Eu sou o coordenador");
-        } else {
+        } else if (bossId > id) {
             System.out.println("O processo " + bossId + " é o coordenador");
+        } else {
+            server.setFirstElection(false);
+            server.startElection(id);
         }
         server.setFirstElection(false);
     }
