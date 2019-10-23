@@ -21,7 +21,6 @@ public class Process extends Thread implements Observer {
     @Override
     public void run() {
         super.run();
-
         while (true) {
             verifyBoss();
             waitRandomTime();
@@ -38,7 +37,7 @@ public class Process extends Thread implements Observer {
 
     public void waitRandomTime() {
         try {
-            Thread.sleep(1000 + random.nextInt(3000));
+            Thread.sleep(3000 + random.nextInt(5000));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -52,23 +51,27 @@ public class Process extends Thread implements Observer {
     @Override
     public void imTheBoss() {
         server.setCurrentBoss(id);
+        server.setFirstElection(false);
         server.sendMessageToAllProcess(Constants.BOSS_MESSAGE, id);
     }
 
     @Override
     public void electionMessage(int sourceId) {
-        System.out.println("Enviando " + Constants.OK + " para o processo: " + sourceId);
-
-        server.sendMessage(new Message(id, sourceId, Constants.OK));
-        server.startElection(id);
+        if (server.getCurrentBoss() == id) {
+            System.out.println("Enviando " + Constants.OK + " para o processo: " + sourceId);
+            server.sendMessage(new Message(id, sourceId, Constants.OK));
+            server.startElection(id);
+        }
     }
 
     @Override
     public void newBoss(int bossId) {
         if (bossId == id) {
             System.out.println("Eu sou o coordenador");
+            server.setCurrentBoss(bossId);
         } else if (bossId > id) {
-            System.out.println("O processo " + bossId + " é o coordenador");
+            System.out.println("Processo coordenador: " + bossId);
+            server.setCurrentBoss(bossId);
         } else {
             server.setFirstElection(false);
             server.startElection(id);

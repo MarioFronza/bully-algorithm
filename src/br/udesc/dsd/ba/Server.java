@@ -18,19 +18,16 @@ public class Server extends Thread {
     private int port;
     private int currentBoss;
     private int countOfResponseElectionMessages;
-
+    private int verifyWhoIsTheBossCountLimit;
+    private int verifyElectionResultCountLimit;
     private boolean firstElection;
 
     private Socket client;
-    private Socket targetClient;
-    private ServerSocket serverSocket;
     private Random random;
-    private ObjectOutputStream outputStream;
-
     private List<Observer> observerList;
 
 
-    public static Server getInstance() {
+    static Server getInstance() {
         if (instance == null) {
             instance = new Server();
         }
@@ -42,24 +39,25 @@ public class Server extends Thread {
         this.currentBoss = -1;
         this.firstElection = false;
         this.countOfResponseElectionMessages = 0;
+        this.verifyWhoIsTheBossCountLimit = 0;
+        this.verifyElectionResultCountLimit = 0;
         this.random = new Random();
-
         this.observerList = new ArrayList<>();
     }
 
-    public void setPort(int port) {
+    void setPort(int port) {
         this.port = port;
     }
 
-    public void setCurrentBoss(int currentBoss) {
+    void setCurrentBoss(int currentBoss) {
         this.currentBoss = currentBoss;
     }
 
-    public int getCurrentBoss() {
+    int getCurrentBoss() {
         return currentBoss;
     }
 
-    public void setFirstElection(boolean firstElection) {
+    void setFirstElection(boolean firstElection) {
         this.firstElection = firstElection;
     }
 
@@ -67,7 +65,7 @@ public class Server extends Thread {
     public void run() {
         super.run();
         try {
-            this.serverSocket = new ServerSocket(port);
+            ServerSocket serverSocket = new ServerSocket(port);
             while (true) {
                 this.client = serverSocket.accept();
 
@@ -82,7 +80,7 @@ public class Server extends Thread {
         }
     }
 
-    public void validateMessage(Message message) {
+    private void validateMessage(Message message) {
         if (message.getMessage().equals(Constants.WHO_IS_THE_BOSS))
             notifyWhoIsTheBossMessage(message.getSource());
 
@@ -96,13 +94,12 @@ public class Server extends Thread {
         }
 
         if (message.getMessage().equals(Constants.BOSS_MESSAGE)) {
-            currentBoss = message.getSource();
             notifyNewBoss(message.getSource());
         }
     }
 
 
-    public void startElection(int id) {
+    void startElection(int id) {
         if (!firstElection && currentBoss == -1) {
             System.out.println("Iniciando eleição...");
             for (int i = 0; i < Constants.ports.length; i++) {
@@ -115,14 +112,12 @@ public class Server extends Thread {
         }
     }
 
-    public void verifyWhoIsTheBoss(String message, int sourceId) {
+
+    void verifyWhoIsTheBoss(String message, int sourceId) {
         currentBoss = -1;
         sendMessageToAllLargerProcess(message, sourceId);
         boolean findBoss = false;
-
-        int countLimit = 0;
-
-        while (!findBoss && countLimit < 3) {
+        while (!findBoss && verifyWhoIsTheBossCountLimit < 5) {
             waitRandomTime();
             if (currentBoss == -1) {
                 notifyBossNotFound(); // nenhum coordenador encontrado
@@ -131,34 +126,36 @@ public class Server extends Thread {
                 notifyNewBoss(currentBoss);
                 findBoss = true;
             }
-            countLimit++;
+            verifyWhoIsTheBossCountLimit = 0;
+            verifyWhoIsTheBossCountLimit++;
         }
     }
 
 
     private void verifyElectionResult() {
         boolean hasResult = false;
-        int countLimit = 0;
-        while (!hasResult && countLimit < 3) {
+        System.out.println("Verificando resultado da eleição...");
+        while (!hasResult && verifyElectionResultCountLimit < 5 && currentBoss == -1) {
             waitRandomTime();
             if (countOfResponseElectionMessages == 0 && currentBoss == -1) {
                 notifyImTheNewBoss();
                 hasResult = true;
             }
-            countLimit++;
+            verifyElectionResultCountLimit++;
         }
+        verifyElectionResultCountLimit = 0;
         countOfResponseElectionMessages = 0;
     }
 
-    public void waitRandomTime() {
+    private void waitRandomTime() {
         try {
-            Thread.sleep(1000 + random.nextInt(1000));
+            Thread.sleep(1000 + random.nextInt(2000));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    public void sendMessageToAllProcess(String message, int sourceId) {
+    void sendMessageToAllProcess(String message, int sourceId) {
         for (int i = 0; i < Constants.ports.length; i++) {
             if (i + 1 != sourceId) {
                 sendMessage(new Message(sourceId, i + 1, message));
@@ -174,18 +171,18 @@ public class Server extends Thread {
         }
     }
 
-    public void sendMessage(Message message) {
+    void sendMessage(Message message) {
         try {
-            targetClient = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
-//            targetClient = new Socket(Constants.ips[message.getTarget() - 1], Constants.ports[message.getTarget() - 1]);
-            outputStream = new ObjectOutputStream(targetClient.getOutputStream());
+            Socket targetClient = new Socket("localhost", Constants.ports[message.getTarget() - 1]);
+            //targetClient = new Socket(Constants.ips[message.getTarget() - 1], Constants.ports[message.getTarget() - 1]);
+            ObjectOutputStream outputStream = new ObjectOutputStream(targetClient.getOutputStream());
             outputStream.writeObject(message);
             targetClient.close();
-        } catch (IOException ex) {
+        } catch (IOException ignored) {
         }
     }
 
-    public void addObserver(Observer observer) {
+    void addObserver(Observer observer) {
         this.observerList.add(observer);
     }
 
